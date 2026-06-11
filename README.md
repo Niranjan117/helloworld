@@ -7,7 +7,17 @@ Spring Boot + embedded Tomcat. ESP32-C3 + EC200U posts cell towers (eNB ID) and 
 1. Push this repo to GitHub
 2. [render.com](https://render.com) → **New** → **Blueprint** → connect repo `Niranjan117/helloworld`
 3. Render reads `render.yaml` and builds via `Dockerfile` (Java is not a native Render runtime)
-4. Note your URL: `https://training-api-xxxx.onrender.com`
+4. Note your URL: `https://route-training-api-xxxx.onrender.com`
+
+### If you see `invalid runtime java`
+
+GitHub already uses `runtime: docker`. That error means Render still has the **old** Blueprint from the first failed sync.
+
+1. Render Dashboard → **Blueprints** → delete the failed blueprint
+2. **New → Blueprint** → select `Niranjan117/helloworld` again (branch **main**)
+3. Or skip Blueprint: **New → Web Service** → repo `helloworld` → **Language: Docker** → Free
+
+Do **not** paste YAML manually in Render — it reads `render.yaml` from GitHub.
 
 ## ESP32 setup
 

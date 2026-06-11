@@ -1,5 +1,7 @@
 services:
   - type: web
-    name: training-api
+    name: route-training-api
     runtime: docker
     plan: free
+    repo: https://github.com/Niranjan117/helloworld
+    branch: main
