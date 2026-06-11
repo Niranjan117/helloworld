@@ -6,7 +6,7 @@ Spring Boot + embedded Tomcat. ESP32-C3 + EC200U posts cell towers (eNB ID) and 
 
 1. Push this repo to GitHub
 2. [render.com](https://render.com) → **New** → **Blueprint** → connect repo `Niranjan117/helloworld`
-3. Render reads `render.yaml` and deploys automatically
+3. Render reads `render.yaml` and builds via `Dockerfile` (Java is not a native Render runtime)
 4. Note your URL: `https://training-api-xxxx.onrender.com`
 
 ## ESP32 setup
