@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>Route Training</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 960px; margin: 2rem auto; padding: 0 1rem; }
+    h1 { font-size: 1.4rem; }
+    .row { display: flex; gap: 0.75rem; flex-wrap: wrap; margin: 1rem 0; }
+    button { padding: 0.6rem 1.2rem; font-size: 1rem; cursor: pointer; border-radius: 6px; border: 1px solid #ccc; }
+    button.primary { background: #1565c0; color: #fff; border-color: #1565c0; }
+    button.danger { background: #c62828; color: #fff; border-color: #c62828; }
+    button:disabled { opacity: 0.45; cursor: not-allowed; }
+    .badge { display: inline-block; padding: 0.25rem 0.6rem; border-radius: 4px; font-size: 0.85rem; }
+    .off { background: #ffebee; color: #c62828; }
+    .wait { background: #fff8e1; color: #f57f17; }
+    .train { background: #e3f2fd; color: #1565c0; }
+    table { width: 100%; border-collapse: collapse; margin-top: 1rem; font-size: 0.9rem; }
+    th, td { border: 1px solid #ddd; padding: 0.45rem 0.5rem; text-align: left; }
+    th { background: #f5f5f5; }
+    .hint { color: #666; font-size: 0.85rem; }
+    code { background: #f5f5f5; padding: 0.1rem 0.35rem; border-radius: 3px; }
+  </style>
+</head>
+<body>
+  <h1>Route training — cell tower map</h1>
+  <p class="hint">Spring Boot + embedded Tomcat. Points in <strong>server RAM</strong> only. Towers keyed by <code>eNB ID</code> (cell ID &gt;&gt; 8).</p>
+  <div id="statusLine"><span class="badge off">Loading…</span></div>
+  <div class="row">
+    <button id="btnStart" class="primary" disabled>Start training</button>
+    <button id="btnStop" class="danger" disabled>Stop training</button>
+    <button id="btnClear">Clear points</button>
+  </div>
+  <p>Unique towers: <strong id="uniq">0</strong> | Total: <strong id="total">0</strong></p>
+  <table>
+    <thead><tr><th>#</th><th>eNB</th><th>Cell ID</th><th>Lat</th><th>Lon</th><th>UTC</th></tr></thead>
+    <tbody id="tbody"></tbody>
+  </table>
+  <script>
+    const btnStart = document.getElementById('btnStart');
+    const btnStop = document.getElementById('btnStop');
+    const btnClear = document.getElementById('btnClear');
+    const statusLine = document.getElementById('statusLine');
+    const tbody = document.getElementById('tbody');
+    const uniqEl = document.getElementById('uniq');
+    const totalEl = document.getElementById('total');
+    async function api(path, opts) { return (await fetch(path, opts)).json(); }
+    function renderStatus(s) {
+      let cls = 'off', text = 'Device offline';
+      if (s.device_connected) {
+        if (s.training_active) { cls = 'train'; text = 'Training in progress'; }
+        else { cls = 'wait'; text = 'Device connected — press Start training'; }
+      }
+      statusLine.innerHTML = '<span class="badge ' + cls + '">' + text + '</span>'
+        + (s.device_id ? ' ID: <code>' + s.device_id + '</code>' : '');
+      btnStart.disabled = !s.device_connected || s.training_active;
+      btnStop.disabled = !s.training_active;
+      uniqEl.textContent = s.unique_count;
+      totalEl.textContent = s.points.length;
+      tbody.innerHTML = (s.points || []).map((p, i) =>
+        '<tr><td>' + (i+1) + '</td><td>0x' + p.enodeb_hex + '</td><td>0x' + p.cell_hex +
+        '</td><td>' + p.lat.toFixed(6) + '</td><td>' + p.lon.toFixed(6) + '</td><td>' + p.ts + '</td></tr>'
+      ).join('');
+    }
+    async function refresh() { try { renderStatus(await api('/api/status')); } catch (e) {} }
+    btnStart.onclick = async () => { await api('/api/training/start', { method: 'POST' }); refresh(); };
+    btnStop.onclick = async () => { await api('/api/training/stop', { method: 'POST' }); refresh(); };
+    btnClear.onclick = async () => { await api('/api/training/clear', { method: 'POST' }); refresh(); };
+    setInterval(refresh, 1000);
+    refresh();
+  </script>
+</body>
+</html>
